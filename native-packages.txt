@@ -45,6 +45,7 @@ flameshot
 flatpak
 font-manager
 fontforge
+fprintd
 fzf
 gcolor3
 gimp
@@ -57,6 +58,7 @@ gparted
 grim
 grub
 grub-btrfs
+grub-theme-vimix
 gvfs-mtp
 gvfs-smb
 hunspell-en_us
@@ -149,6 +151,7 @@ sddm
 shotwell
 slurp
 socat
+sof-firmware
 stow
 swayosd
 system-config-printer

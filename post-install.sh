@@ -7,9 +7,10 @@ set -euo pipefail
 # ── Helpers ────────────────────────────────────────────────────
 log()  { echo -e "\n\e[1;34m==> $*\e[0m"; }
 ok()   { echo    "    ✓ $*"; }
+skip() { echo    "    → $* (already done, skipping)"; }
 fail() { echo -e "\e[1;31m✗ $*\e[0m" >&2; exit 1; }
 
-BACKUP_ROOT="/mnt/Disk_D/Muhammad/Repositories/Arch-Backup/root-files"
+BACKUP_ROOT="$HOME/Arch-Backup/root-files"
 
 # ── 1. System update ───────────────────────────────────────────
 log "System update"
@@ -24,21 +25,33 @@ if ! command -v paru &>/dev/null; then
   rm -rf "$tmp"
   ok "paru installed"
 else
-  ok "paru already present, skipping"
+  skip "paru"
 fi
 
 # ── 3. Packages ────────────────────────────────────────────────
 log "Installing native packages"
-paru -S --needed --noconfirm - < ArchNativePackages.txt
+paru -S --needed --noconfirm - < native-packages.txt
 
 log "Installing AUR packages"
-paru -S --needed --noconfirm - < ArchAurPackages.txt
+paru -S --needed --noconfirm - < aur-packages.txt
 
 # ── 4. Shell ───────────────────────────────────────────────────
 log "Shell configuration"
-chsh -s "$(which zsh)"
-sudo ln -sfT dash /usr/bin/sh
-ok "Default shell → zsh, /usr/bin/sh → dash"
+
+ZSH_PATH="$(command -v zsh)"
+if [[ "${SHELL:-}" == "$ZSH_PATH" ]]; then
+  skip "default shell is already zsh"
+else
+  chsh -s "$ZSH_PATH"
+  ok "Default shell → zsh"
+fi
+
+if [[ "$(readlink -f /usr/bin/sh 2>/dev/null || true)" == "$(readlink -f /usr/bin/dash)" ]]; then
+  skip "/usr/bin/sh already points to dash"
+else
+  sudo ln -sfT dash /usr/bin/sh
+  ok "/usr/bin/sh → dash"
+fi
 
 # ── 5. Pacman tweaks ───────────────────────────────────────────
 log "Pacman configuration"
@@ -54,13 +67,24 @@ sudo sed -Ei 's/CriticalPowerAction=HybridSleep/CriticalPowerAction=PowerOff/' \
   /etc/UPower/UPower.conf
 ok "Stop timeout 3 s, critical power action → PowerOff"
 
-# ── 7. sddm theme ──────────────────────────────────────────────
-log "Installing simple-sddm theme"
-git clone https://github.com/JaKooLit/simple-sddm.git ~/simple-sddm
-sudo mv ~/simple-sddm /usr/share/sddm/themes/
-ok "Done"
+# ── 7. GRUB cmdline cleanup ────────────────────────────────────
+log "GRUB configuration"
+sudo sed -Ei 's/^GRUB_CMDLINE_LINUX_DEFAULT=".*"$/GRUB_CMDLINE_LINUX_DEFAULT=""/' \
+  /etc/default/grub
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+ok "GRUB_CMDLINE_LINUX_DEFAULT set to \"quiet\""
 
-# ── 8. Copy config/root files ──────────────────────────────────
+# ── 8. sddm theme ──────────────────────────────────────────────
+log "Installing simple-sddm theme"
+if [[ -d /usr/share/sddm/themes/simple-sddm ]]; then
+  skip "simple-sddm theme"
+else
+  git clone https://github.com/JaKooLit/simple-sddm.git ~/simple-sddm
+  sudo mv ~/simple-sddm /usr/share/sddm/themes/
+  ok "simple-sddm theme installed"
+fi
+
+# ── 9. Copy config/root files ──────────────────────────────────
 log "Copying root-level config files"
 
 copy_root() {
@@ -87,22 +111,41 @@ copy_root "theme.conf"             /usr/share/sddm/themes/simple-sddm/theme.conf
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confetti,hyprland-minimizer}
 
-# ── 9. GTK dark mode ───────────────────────────────────────────
+# ── 10. GTK dark mode ───────────────────────────────────────────
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
-sudo flatpak override --filesystem=~/.themes
+sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
-# ── 10. Samba ──────────────────────────────────────────────────
+# ── 11. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl enable --now smb nmb
-sudo groupadd -r sambauser 2>/dev/null || true
-sudo gpasswd -a muhammad sambauser
-sudo smbpasswd -a muhammad
+
+if getent group sambauser &>/dev/null; then
+  skip "sambauser group"
+else
+  sudo groupadd -r sambauser
+  ok "sambauser group created"
+fi
+
+if id -nG muhammad 2>/dev/null | grep -qw sambauser; then
+  skip "muhammad already in sambauser group"
+else
+  sudo gpasswd -a muhammad sambauser
+  ok "muhammad added to sambauser"
+fi
+
+if sudo pdbedit -L 2>/dev/null | cut -d: -f1 | grep -qx muhammad; then
+  skip "samba password for muhammad already set"
+else
+  sudo smbpasswd -a muhammad
+  ok "samba password set for muhammad"
+fi
+
 sudo systemctl restart smb nmb
 ok "Samba running"
 
-# ── 11. Virtualization (KVM/libvirt) ───────────────────────────
+# ── 12. Virtualization (KVM/libvirt) ───────────────────────────
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
@@ -113,32 +156,44 @@ sudo systemctl enable --now virtlogd.socket
 sudo virsh net-autostart default
 sudo virsh net-start default 2>/dev/null || true
 
-sudo usermod -aG libvirt "$(whoami)"
-ok "KVM/libvirt ready (re-login for group membership)"
+if id -nG "$(whoami)" | grep -qw libvirt; then
+  skip "$(whoami) already in libvirt group"
+else
+  sudo usermod -aG libvirt "$(whoami)"
+  ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
+fi
 
-# ── 12. Remaining services ─────────────────────────────────────
+# ── 13. Remaining services ─────────────────────────────────────
 log "Enabling services"
-for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service; do
+for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
+  sudo waydroid init -s GAPPS
 done
 
-# ── 13. Global npm packages ────────────────────────────────────
+# ── 14. Global npm packages ────────────────────────────────────
 log "Global npm/pnpm packages"
 pnpm add -g neovim live-server typescript tsx @google/gemini-cli
 ok "neovim, live-server, gemini-cli"
 
-# ── 14. Flatpak apps ───────────────────────────────────────────
+# ── 15. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
-flatpak install -y flathub \
+flatpak install -y --noninteractive flathub \
   io.github._0xzer0x.qurancompanion \
   net.sapples.LiveCaptions
 ok "Flatpak apps installed"
 
-# ── 15. Root account symlinks ──────────────────────────────────
+# ── 16. Root account symlinks ──────────────────────────────────
 log "Root user symlinks"
 sudo bash -s <<'ROOT'
   set -euo pipefail
-  echo "kernel.sysrq = 1" >> /etc/sysctl.d/99-sysctl.conf
+
+  SYSCTL_FILE=/etc/sysctl.d/99-sysctl.conf
+  if [[ -f "$SYSCTL_FILE" ]] && grep -qx 'kernel.sysrq = 1' "$SYSCTL_FILE"; then
+    echo "    → kernel.sysrq already set, skipping"
+  else
+    echo "kernel.sysrq = 1" >> "$SYSCTL_FILE"
+    echo "    ✓ kernel.sysrq = 1 added"
+  fi
 
   USER_HOME=/home/muhammad
   rm -rf \
@@ -148,14 +203,14 @@ sudo bash -s <<'ROOT'
     /root/.config/gtk-{2,3,4}.0
 
   for d in gtk-2.0 gtk-3.0 gtk-4.0 kanata nvim yazi zsh; do
-    ln -s "$USER_HOME/.config/$d" /root/.config/
+    ln -sfn "$USER_HOME/.config/$d" /root/.config/
   done
   for d in .fonts .icons .themes; do
-    ln -s "$USER_HOME/$d" /root/
+    ln -sfn "$USER_HOME/$d" /root/
   done
-  ln -s "$USER_HOME/.local/share/nvim" /root/.local/share/
-  ln -s "$USER_HOME/.zshrc" /root/
-  echo "  ✓ Root symlinks created"
+  ln -sfn "$USER_HOME/.local/share/nvim" /root/.local/share/
+  ln -sfn "$USER_HOME/.zshrc" /root/
+  echo "    ✓ Root symlinks created"
 ROOT
 
 # ── Done ──────────────────────────────────────────────────────

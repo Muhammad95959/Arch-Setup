@@ -7,8 +7,7 @@ dashbinsh
 downgrade
 dracula-cursors-git
 dragon-drop
-grub-customizer
-helium-browser-bin
+grub-customizer-git
 hyprminimizer-git
 jetbrains-toolbox
 jqp-bin
@@ -17,6 +16,7 @@ litecli
 localsend-bin
 mongodb-bin
 mpvpaper
+notify-send-py
 obs-advanced-masks
 obs-move-transition
 obs-source-clone
@@ -34,7 +34,6 @@ sesh-bin
 simple-mtpfs
 telegram-desktop-bin
 toilet-fonts
-ttf-ms-fonts
 ttf-vista-fonts
 unimatrix-git
 ventoy-bin
