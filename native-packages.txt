@@ -3,7 +3,9 @@ acpi
 alsa-utils
 android-tools
 arandr
+aria2
 audacious
+audacity
 awww
 base
 base-devel
@@ -18,6 +20,7 @@ breeze
 brightnessctl
 cliphist
 cups
+dart-sass
 dash
 dbus-glib
 diffstat
@@ -26,6 +29,7 @@ dnsmasq
 docker
 docker-buildx
 docker-compose
+dua-cli
 efibootmgr
 entr
 eza
@@ -84,6 +88,7 @@ mpv
 mpv-mpris
 neovim
 networkmanager
+nginx
 noise-suppression-for-voice
 noto-fonts-emoji
 npm
@@ -130,6 +135,7 @@ qt5-quickcontrols2
 qt5ct
 qt6ct
 qutebrowser
+rabbitmq
 reflector
 resvg
 ripgrep
@@ -141,7 +147,6 @@ rust
 samba
 sddm
 shotwell
-showmethekey
 slurp
 socat
 stow
@@ -164,14 +169,14 @@ ttf-scheherazade-new
 ttf-ubuntu-nerd
 tumbler
 udiskie
-uget
 unrar
 unzip
 upower
+valkey
 virt-manager
 virt-viewer
 vnstat
-waybar
+waydroid
 wget
 wine
 wl-clip-persist
