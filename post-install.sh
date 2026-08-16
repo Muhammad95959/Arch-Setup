@@ -99,7 +99,7 @@ copy_root "20-connectivity.conf"   /etc/NetworkManager/conf.d/20-connectivity.co
 copy_root "Arc Dark.ini"           /usr/share/albert/widgetsboxmodel/themes/Arc\ Dark.ini
 copy_root "Tokyonight Dark.ini"    /usr/share/albert/widgetsboxmodel/themes/Tokyonight\ Dark.ini
 copy_root "bilal"                  /usr/local/bin/bilal
-copy_root "confetti"               /usr/local/bin/confetti
+copy_root "confet"                 /usr/local/bin/confet
 copy_root "default.conf"           /usr/lib/sddm/sddm.conf.d/default.conf
 copy_root "environment"            /etc/environment
 copy_root "hyprland-minimizer"     /usr/local/bin/hyprland-minimizer
@@ -109,11 +109,12 @@ copy_root "smb.conf"               /etc/samba/smb.conf
 copy_root "theme.conf"             /usr/share/sddm/themes/simple-sddm/theme.conf
 
 # Make /usr/local/bin scripts executable
-sudo chmod +x /usr/local/bin/{bilal,confetti,hyprland-minimizer}
+sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer}
 
 # ── 10. GTK dark mode ───────────────────────────────────────────
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
 sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
