@@ -10,7 +10,7 @@ ok()   { echo    "    ✓ $*"; }
 skip() { echo    "    → $* (already done, skipping)"; }
 fail() { echo -e "\e[1;31m✗ $*\e[0m" >&2; exit 1; }
 
-BACKUP_ROOT="$HOME/Arch-Backup/root-files"
+BACKUP_ROOT="$HOME/Arch-Backup/root"
 
 # ── 1. System update ───────────────────────────────────────────
 log "System update"
@@ -87,26 +87,9 @@ fi
 # ── 9. Copy config/root files ──────────────────────────────────
 log "Copying root-level config files"
 
-copy_root() {
-  local src="$BACKUP_ROOT/$1" dst="$2"
-  [[ -e "$src" ]] || fail "Missing: $src"
-  sudo mkdir -p "$(dirname "$dst")"
-  sudo cp "$src" "$dst"
-  ok "$dst"
-}
-
-copy_root "20-connectivity.conf"   /etc/NetworkManager/conf.d/20-connectivity.conf
-copy_root "Arc Dark.ini"           /usr/share/albert/widgetsboxmodel/themes/Arc\ Dark.ini
-copy_root "Tokyonight Dark.ini"    /usr/share/albert/widgetsboxmodel/themes/Tokyonight\ Dark.ini
-copy_root "bilal"                  /usr/local/bin/bilal
-copy_root "confet"                 /usr/local/bin/confet
-copy_root "default.conf"           /usr/lib/sddm/sddm.conf.d/default.conf
-copy_root "environment"            /etc/environment
-copy_root "hyprland-minimizer"     /usr/local/bin/hyprland-minimizer
-copy_root "kanata.service"         /etc/systemd/system/kanata.service
-copy_root "nobeep.conf"            /etc/modprobe.d/nobeep.conf
-copy_root "smb.conf"               /etc/samba/smb.conf
-copy_root "theme.conf"             /usr/share/sddm/themes/simple-sddm/theme.conf
+# The repo's `root/` tree mirrors the destination filesystem layout
+# (paths relative to /). Copy it over recursively.
+sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer}
@@ -121,6 +104,34 @@ ok "Done"
 # ── 11. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl enable --now smb nmb
+
+sudo cp /usr/lib/systemd/system/{nmb,smb}.service /etc/systemd/system/
+sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' \
+  /etc/systemd/system/nmb.service /etc/systemd/system/smb.service
+sudo sed -i 's/^After=network.target network-online.target$/After=network.target/' \
+  /etc/systemd/system/nmb.service
+sudo sed -i 's/^After=network.target network-online.target nmb/After=network.target nmb/' \
+  /etc/systemd/system/smb.service
+sudo sed -i '/^\[Service\]$/i ExecStartPost=/usr/bin/systemctl start smb.service' \
+  /etc/systemd/system/nmb.service
+sudo sed -i '/^WantedBy=multi-user.target$/d' \
+  /etc/systemd/system/nmb.service /etc/systemd/system/smb.service
+sudo bash -c 'cat > /etc/systemd/system/nmb-delay.timer << "EOF"
+[Unit]
+Description=Delay nmb.service + smb.service until after boot
+
+[Timer]
+Unit=nmb.service
+OnBootSec=5s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
+EOF'
+sudo systemctl daemon-reload
+sudo systemctl disable --now nmb.service smb.service 2>/dev/null || true
+sudo systemctl enable --now nmb-delay.timer
+ok "Samba services delayed 5s after boot via timer"
 
 if getent group sambauser &>/dev/null; then
   skip "sambauser group"
@@ -150,9 +161,38 @@ ok "Samba running"
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
-sudo systemctl enable --now libvirtd.service
-sudo systemctl enable --now virtlogd.service
-sudo systemctl enable --now virtlogd.socket
+sudo cp /usr/lib/systemd/system/libvirtd.service /etc/systemd/system/libvirtd.service
+sudo sed -i '/^After=network.target$/d; /^After=remote-fs.target$/d' \
+  /etc/systemd/system/libvirtd.service
+sudo sed -i '/^WantedBy=multi-user.target$/d' \
+  /etc/systemd/system/libvirtd.service
+sudo bash -c 'cat > /etc/systemd/system/libvirtd.service.d/10-secret.conf << "EOF"
+[Unit]
+Requires=virt-secret-init-encryption.service
+After=virt-secret-init-encryption.service
+
+[Service]
+Environment=SECRETS_ENCRYPTION_KEY=%d/secrets-encryption-key
+LoadCredentialEncrypted=secrets-encryption-key:/var/lib/libvirt/secrets/secrets-encryption-key
+EOF'
+sudo bash -c 'cat > /etc/systemd/system/libvirtd-delay.timer << "EOF"
+[Unit]
+Description=Delay libvirtd.service until after boot
+
+[Timer]
+Unit=libvirtd.service
+OnBootSec=5s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
+EOF'
+sudo systemctl daemon-reload
+sudo systemctl disable --now libvirtd.service 2>/dev/null || true
+sudo systemctl disable --now libvirtd.socket libvirtd-ro.socket libvirtd-admin.socket 2>/dev/null || true
+sudo systemctl enable --now virtlogd.service virtlogd.socket 2>/dev/null || true
+sudo systemctl enable --now libvirtd-delay.timer
+ok "libvirtd delayed 5s after boot via timer"
 
 sudo virsh net-autostart default
 sudo virsh net-start default 2>/dev/null || true
@@ -173,8 +213,8 @@ done
 
 # ── 14. Global npm packages ────────────────────────────────────
 log "Global npm/pnpm packages"
-pnpm add -g neovim live-server typescript tsx @google/gemini-cli
-ok "neovim, live-server, gemini-cli"
+pnpm add -g neovim live-server typescript tsx free-coding-models
+ok "neovim, live-server, typescript, tsx, free-coding-models"
 
 # ── 15. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
