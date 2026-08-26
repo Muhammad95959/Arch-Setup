@@ -1,0 +1,12 @@
+[Unit]
+Description=Switch to tty1 before shutdown/reboot
+DefaultDependencies=no
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=0
+ExecStart=-/usr/bin/chvt 1
+
+[Install]
+WantedBy=shutdown.target

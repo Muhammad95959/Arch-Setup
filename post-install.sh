@@ -196,7 +196,7 @@ fi
 
 # ── 12. Remaining services ─────────────────────────────────────
 log "Enabling services"
-for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service; do
+for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service switch-to-tty1-shutdown.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
   sudo waydroid init -s GAPPS
 done
