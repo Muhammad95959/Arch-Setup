@@ -74,17 +74,7 @@ sudo sed -Ei 's/^GRUB_CMDLINE_LINUX_DEFAULT=".*"$/GRUB_CMDLINE_LINUX_DEFAULT=""/
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 ok "GRUB_CMDLINE_LINUX_DEFAULT set to \"quiet\""
 
-# ── 8. sddm theme ──────────────────────────────────────────────
-log "Installing simple-sddm theme"
-if [[ -d /usr/share/sddm/themes/simple-sddm ]]; then
-  skip "simple-sddm theme"
-else
-  git clone https://github.com/JaKooLit/simple-sddm.git ~/simple-sddm
-  sudo mv ~/simple-sddm /usr/share/sddm/themes/
-  ok "simple-sddm theme installed"
-fi
-
-# ── 9. Copy config/root files ──────────────────────────────────
+# ── 8. Copy config/root files ──────────────────────────────────
 log "Copying root-level config files"
 
 # The repo's `root/` tree mirrors the destination filesystem layout
@@ -94,14 +84,14 @@ sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer}
 
-# ── 10. GTK dark mode ───────────────────────────────────────────
+# ── 9. GTK dark mode ───────────────────────────────────────────
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
 sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
-# ── 11. Samba ──────────────────────────────────────────────────
+# ── 10. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl enable --now smb nmb
 
@@ -157,7 +147,7 @@ fi
 sudo systemctl restart smb nmb
 ok "Samba running"
 
-# ── 12. Virtualization (KVM/libvirt) ───────────────────────────
+# ── 11. Virtualization (KVM/libvirt) ───────────────────────────
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
@@ -204,26 +194,26 @@ else
   ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
 fi
 
-# ── 13. Remaining services ─────────────────────────────────────
+# ── 12. Remaining services ─────────────────────────────────────
 log "Enabling services"
 for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
   sudo waydroid init -s GAPPS
 done
 
-# ── 14. Global npm packages ────────────────────────────────────
+# ── 13. Global npm packages ────────────────────────────────────
 log "Global npm/pnpm packages"
 pnpm add -g neovim live-server typescript tsx free-coding-models
 ok "neovim, live-server, typescript, tsx, free-coding-models"
 
-# ── 15. Flatpak apps ───────────────────────────────────────────
+# ── 14. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
 flatpak install -y --noninteractive flathub \
   io.github._0xzer0x.qurancompanion \
   net.sapples.LiveCaptions
 ok "Flatpak apps installed"
 
-# ── 16. Root account symlinks ──────────────────────────────────
+# ── 15. Root account symlinks ──────────────────────────────────
 log "Root user symlinks"
 sudo bash -s <<'ROOT'
   set -euo pipefail

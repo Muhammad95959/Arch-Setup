@@ -1,0 +1,37 @@
+[display]
+show_time = true
+greeting = '''
+
+███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
+╚══███╔╝██╔══██╗██╔══██╗██╔════╝██║  ██║
+  ███╔╝ ███████║██████╔╝██║     ███████║
+ ███╔╝  ██╔══██║██╔══██╗██║     ██╔══██║
+███████╗██║  ██║██║  ██║╚██████╗██║  ██║
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+
+'''
+align_greeting = "center"
+
+[theme]
+border = "bright-green"
+text = "white"
+time = "bright-green"
+container = "black"
+title = "bright-blue"
+greet = "bright-blue"
+prompt = "bright-blue"
+input = "white"
+action = "white"
+button = "bright-green"
+
+[session]
+command = "hyprland"
+sessions_dirs = ["/usr/share/wayland-sessions"]
+
+[remember]
+username = true
+session = true
+user_session = true
+
+[background]
+kind = "matrix"
