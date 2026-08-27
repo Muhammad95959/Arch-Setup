@@ -12,6 +12,23 @@ greeting = '''
 '''
 align_greeting = "center"
 
+[remember]
+username = true
+session = false
+user_session = true
+
+[secret]
+mode = "characters"
+
+[keybindings]
+command = 2
+sessions = 3
+power = 4
+background = 5
+
+[background]
+kind = "matrix"
+
 [theme]
 border = "bright-green"
 text = "white"
@@ -25,13 +42,4 @@ action = "white"
 button = "bright-green"
 
 [session]
-command = "hyprland"
-sessions_dirs = ["/usr/share/wayland-sessions"]
-
-[remember]
-username = true
-session = true
-user_session = true
-
-[background]
-kind = "matrix"
+sessions_dirs = ["/usr/share/wayland-sessions", "/usr/share/xsessions"]

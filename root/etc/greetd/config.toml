@@ -1,6 +1,6 @@
 [terminal]
-vt = 2
+vt = "next"
 
 [default_session]
-command = "tuigreet --config /etc/greetd/tuigreet.toml --user muhammad"
+command = "tuigreet --config /etc/greetd/tuigreet.toml"
 user = "greeter"
