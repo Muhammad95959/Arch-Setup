@@ -10,7 +10,7 @@ ok()   { echo    "    ✓ $*"; }
 skip() { echo    "    → $* (already done, skipping)"; }
 fail() { echo -e "\e[1;31m✗ $*\e[0m" >&2; exit 1; }
 
-BACKUP_ROOT="$HOME/Arch-Backup/root"
+BACKUP_ROOT="$(cd "$(dirname "$0")" && pwd)/root"
 
 # ── 1. Pacman tweaks ───────────────────────────────────────────
 log "Pacman configuration"
@@ -50,6 +50,13 @@ sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
+
+# Rebuild initramfs with repo mkinitcpio.conf
+if [[ -f /etc/mkinitcpio.conf ]]; then
+  sudo mkinitcpio -P
+  sudo bootctl update --graceful 2>/dev/null || true
+  sudo systemctl daemon-reload
+fi
 
 # ── 6. Shell ───────────────────────────────────────────────────
 log "Shell configuration"
@@ -95,19 +102,6 @@ ok "Done"
 
 # ── 10. Samba ──────────────────────────────────────────────────
 log "Samba setup"
-sudo systemctl enable --now smb nmb
-
-sudo cp /usr/lib/systemd/system/{nmb,smb}.service /etc/systemd/system/
-sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' \
-  /etc/systemd/system/nmb.service /etc/systemd/system/smb.service
-sudo sed -i 's/^After=network.target network-online.target$/After=network.target/' \
-  /etc/systemd/system/nmb.service
-sudo sed -i 's/^After=network.target network-online.target nmb/After=network.target nmb/' \
-  /etc/systemd/system/smb.service
-sudo sed -i '/^\[Service\]$/i ExecStartPost=/usr/bin/systemctl start smb.service' \
-  /etc/systemd/system/nmb.service
-sudo sed -i '/^WantedBy=multi-user.target$/d' \
-  /etc/systemd/system/nmb.service /etc/systemd/system/smb.service
 sudo systemctl daemon-reload
 sudo systemctl disable --now nmb.service smb.service 2>/dev/null || true
 sudo systemctl enable --now nmb-delay.timer
@@ -141,11 +135,6 @@ ok "Samba running"
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
-sudo cp /usr/lib/systemd/system/libvirtd.service /etc/systemd/system/libvirtd.service
-sudo sed -i '/^After=network.target$/d; /^After=remote-fs.target$/d' \
-  /etc/systemd/system/libvirtd.service
-sudo sed -i '/^WantedBy=multi-user.target$/d' \
-  /etc/systemd/system/libvirtd.service
 sudo systemctl daemon-reload
 sudo systemctl disable --now libvirtd.service 2>/dev/null || true
 sudo systemctl disable --now libvirtd.socket libvirtd-ro.socket libvirtd-admin.socket 2>/dev/null || true
