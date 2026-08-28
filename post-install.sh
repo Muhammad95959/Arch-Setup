@@ -126,7 +126,7 @@ ok "Stop timeout 3 s, critical power action → PowerOff"
 # ── 8. Snapper + systemd-boot ──────────────────────────────────
 log "Snapper + systemd-boot"
 sudo systemctl daemon-reload
-sudo systemctl enable snapper-cleanup.timer snapper-timeline.timer
+sudo systemctl enable snapper-cleanup.timer
 sudo systemctl enable --now snapper-systemd-boot.path
 sudo /usr/local/bin/snapper-systemd-boot.sh || true
 sudo bootctl update --graceful 2>/dev/null || true
