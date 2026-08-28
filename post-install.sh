@@ -59,23 +59,6 @@ if command -v booster &>/dev/null; then
 fi
 sudo bootctl update --graceful 2>/dev/null || true
 
-# ── 5.5. Service patches for delayed services ──────────────────
-log "Patching delayed services (nmb/smb)"
-
-sudo cp /usr/lib/systemd/system/nmb.service /etc/systemd/system/nmb.service 2>/dev/null || true
-sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' /etc/systemd/system/nmb.service
-sudo sed -i 's/^After=network.target network-online.target$/After=network.target/' /etc/systemd/system/nmb.service
-sudo sed -i '/^\[Service\]$/i ExecStartPost=/usr/bin/systemctl start smb.service' /etc/systemd/system/nmb.service
-sudo sed -i '/^WantedBy=multi-user.target$/d' /etc/systemd/system/nmb.service
-
-sudo cp /usr/lib/systemd/system/smb.service /etc/systemd/system/smb.service 2>/dev/null || true
-sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' /etc/systemd/system/smb.service
-sudo sed -i 's/^After=network.target network-online.target nmb.service winbind.service/After=network.target winbind.service/' /etc/systemd/system/smb.service
-sudo sed -i '/^WantedBy=multi-user.target$/d' /etc/systemd/system/smb.service
-
-sudo systemctl daemon-reload
-ok "Delayed services patched"
-
 # ── 6. Shell ───────────────────────────────────────────────────
 log "Shell configuration"
 
@@ -131,9 +114,7 @@ fi
 
 # ── 11. Samba ──────────────────────────────────────────────────
 log "Samba setup"
-sudo systemctl daemon-reload
-sudo systemctl enable --now nmb-delay.timer
-ok "Samba services delayed 5s after boot via timer"
+# samba NOT enabled at boot (manual start: systemctl start smb nmb)
 
 if getent group sambauser &>/dev/null; then
   skip "sambauser group"
@@ -156,12 +137,11 @@ else
   ok "samba password set for muhammad"
 fi
 
-sudo systemctl restart smb nmb
-ok "Samba running"
+ok "Samba configured (start manually with 'systemctl start smb nmb')"
 
 # ── 12. Remaining services ─────────────────────────────────────
 log "Enabling services"
-for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service switch-to-tty1-shutdown.service; do
+for svc in auto-cpufreq kanata.service systemd-timesyncd vnstat.service fprintd.service switch-to-tty1-shutdown.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
 done
 sudo waydroid init -s GAPPS 2>/dev/null || true
