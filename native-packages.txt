@@ -2,7 +2,6 @@
 acpi
 alsa-utils
 android-tools
-arandr
 aria2
 audacious
 audacity
@@ -55,10 +54,8 @@ git-filter-repo
 gnome-disk-utility
 go
 gparted
+greetd-tuigreet
 grim
-grub
-grub-btrfs
-grub-theme-vimix
 gvfs-mtp
 gvfs-smb
 hunspell-en_us
@@ -70,6 +67,7 @@ hyprsunset
 img2pdf
 inetutils
 inkscape
+inotify-tools
 jdk17-openjdk
 jq
 jre-openjdk
@@ -107,7 +105,6 @@ octave
 okular
 opencl-nvidia
 openssh
-os-prober
 ouch
 pass
 pavucontrol
@@ -132,11 +129,8 @@ python-pynvim
 python-scipy
 qalculate-gtk
 qemu-full
-qt5-graphicaleffects
-qt5-quickcontrols2
 qt5ct
 qt6ct
-qutebrowser
 rabbitmq
 reflector
 resvg
@@ -147,9 +141,9 @@ rsync
 rubygems
 rust
 samba
-sddm
 shotwell
 slurp
+snapper
 socat
 sof-firmware
 stow
@@ -161,7 +155,6 @@ tesseract
 testdisk
 thunar
 thunar-archive-plugin
-timeshift
 tmux
 toilet
 tree
@@ -193,7 +186,6 @@ yazi
 ydotool
 yt-dlp
 yt-dlp-ejs
-zathura
 zathura-pdf-poppler
 zip
 zoxide

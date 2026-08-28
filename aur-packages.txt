@@ -1,4 +1,5 @@
 albert
+antigravity-cli
 auto-cpufreq
 boomaga
 brave-origin-bin
@@ -7,11 +8,11 @@ dashbinsh
 downgrade
 dracula-cursors-git
 dragon-drop
-grub-customizer-git
 hyprminimizer-git
 jetbrains-toolbox
 jqp-bin
 kanata-bin
+kilo-bin
 litecli
 localsend-bin
 mongodb-bin
@@ -23,6 +24,7 @@ obs-source-clone
 obs-stroke-glow-shadow
 octave-communications
 octave-symbolic
+openai-codex-bin
 opencode-bin
 paru
 posting-git
@@ -46,3 +48,4 @@ wlrctl
 wlrobs-hg
 wshowkeys-mao-git
 xdg-desktop-portal-termfilechooser-hunkyburrito-git
+zathura-git
