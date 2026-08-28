@@ -58,26 +58,9 @@ if command -v booster &>/dev/null; then
 fi
 sudo bootctl update --graceful 2>/dev/null || true
 
-# ── 5.5. Service patches for minimal boot  ─────────────────────
-log "Patching services for minimal boot"
-# systemd-user-sessions: decouple from network.target
-sudo cp /usr/lib/systemd/system/systemd-user-sessions.service /etc/systemd/system/systemd-user-sessions.service 2>/dev/null || true
-sudo sed -i 's/ network.target//' /etc/systemd/system/systemd-user-sessions.service
-
-# systemd-backlight: defer after sysinit, before chvt on shutdown (avoid flicker race)
-sudo cp /usr/lib/systemd/system/systemd-backlight@.service /etc/systemd/system/systemd-backlight@.service 2>/dev/null || true
-sudo sed -i 's/^Before=sysinit.target shutdown.target/Before=switch-to-tty1-shutdown.service shutdown.target/' /etc/systemd/system/systemd-backlight@.service
-sudo grep -q "^After=sysinit.target" /etc/systemd/system/systemd-backlight@.service || sudo sed -i '/^Before=switch-to-tty1-shutdown.service shutdown.target/a After=sysinit.target' /etc/systemd/system/systemd-backlight@.service
-
-# cups, sshd, vnstat, auto-cpufreq: remove network dependency
-for svc in cups sshd vnstat auto-cpufreq; do
-  sudo cp "/usr/lib/systemd/system/$svc.service" "/etc/systemd/system/$svc.service" 2>/dev/null || continue
-  sudo sed -i 's/^After=network.target //; s/ network.target//g; /^After=network.target$/d; /^After=network-online.target$/d' "/etc/systemd/system/$svc.service"
-done
-# auto-cpufreq also has combined After on one line
-sudo sed -i '/^After=network.target network-online.target/d' /etc/systemd/system/auto-cpufreq.service 2>/dev/null || true
-
-# libvirtd, nmb, smb: small patches
+# ── 5.5. Service patches for delayed services ──────────────────
+log "Patching delayed services (libvirtd/nmb/smb)"
+# libvirtd, nmb, smb: small patches for delayed start via timers
 sudo cp /usr/lib/systemd/system/libvirtd.service /etc/systemd/system/libvirtd.service 2>/dev/null || true
 sudo sed -i '/^After=network.target$/d; /^After=remote-fs.target$/d; /^WantedBy=multi-user.target$/d' /etc/systemd/system/libvirtd.service
 
@@ -93,9 +76,8 @@ sudo sed -i 's/^After=network.target network-online.target nmb/After=network.tar
 sudo sed -i 's/^After=network.target network-online.target/After=network.target/' /etc/systemd/system/smb.service
 sudo sed -i '/^WantedBy=multi-user.target$/d' /etc/systemd/system/smb.service
 
-# upower: not block graphical (drop-in already in root/etc/systemd/system/upower.service.d/no-block.conf via cp -r in §5)
 sudo systemctl daemon-reload
-ok "Services patched for minimal graphical"
+ok "Delayed services patched"
 
 # ── 6. Shell ───────────────────────────────────────────────────
 log "Shell configuration"
