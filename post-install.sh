@@ -54,7 +54,8 @@ sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-bo
 # Rebuild initramfs with booster (11M, zstd, host-specific)
 if command -v booster &>/dev/null; then
   log "Building booster image"
-  sudo booster build --force --kernel-version "$(ls /usr/lib/modules | grep -E '^[0-9]' | head -n1)" /boot/booster-linux.img 2>&1 | tail -n 5 || sudo booster build 2>&1 | tail -n 5
+  kver=$(for d in /usr/lib/modules/[0-9]*; do basename "$d"; break; done)
+  sudo booster build --force --kernel-version "$kver" /boot/booster-linux.img 2>&1 | tail -n 5 || sudo booster build 2>&1 | tail -n 5
 fi
 sudo bootctl update --graceful 2>/dev/null || true
 
