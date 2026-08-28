@@ -12,11 +12,17 @@ fail() { echo -e "\e[1;31m✗ $*\e[0m" >&2; exit 1; }
 
 BACKUP_ROOT="$HOME/Arch-Backup/root"
 
-# ── 1. System update ───────────────────────────────────────────
+# ── 1. Pacman tweaks ───────────────────────────────────────────
+log "Pacman configuration"
+sudo sed -Ei '/Color/s/^#//'                              /etc/pacman.conf
+sudo sed -Ei 's/#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
+ok "Color + parallel downloads enabled"
+
+# ── 2. System update ───────────────────────────────────────────
 log "System update"
 sudo pacman -Syu --noconfirm
 
-# ── 2. AUR helper (paru) ───────────────────────────────────────
+# ── 3. AUR helper (paru) ───────────────────────────────────────
 log "Installing paru"
 if ! command -v paru &>/dev/null; then
   tmp=$(mktemp -d)
@@ -28,14 +34,24 @@ else
   skip "paru"
 fi
 
-# ── 3. Packages ────────────────────────────────────────────────
+# ── 4. Packages ────────────────────────────────────────────────
 log "Installing native packages"
 paru -S --needed --noconfirm - < native-packages.txt
 
 log "Installing AUR packages"
 paru -S --needed --noconfirm - < aur-packages.txt
 
-# ── 4. Shell ───────────────────────────────────────────────────
+# ── 5. Copy config/root files ──────────────────────────────────
+log "Copying root-level config files"
+
+# The repo's `root/` tree mirrors the destination filesystem layout
+# (paths relative to /). Copy it over recursively.
+sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
+
+# Make /usr/local/bin scripts executable
+sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
+
+# ── 6. Shell ───────────────────────────────────────────────────
 log "Shell configuration"
 
 ZSH_PATH="$(command -v zsh)"
@@ -53,13 +69,7 @@ else
   ok "/usr/bin/sh → dash"
 fi
 
-# ── 5. Pacman tweaks ───────────────────────────────────────────
-log "Pacman configuration"
-sudo sed -Ei '/Color/s/^#//'                              /etc/pacman.conf
-sudo sed -Ei 's/#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
-ok "Color + parallel downloads enabled"
-
-# ── 6. Systemd tweaks ──────────────────────────────────────────
+# ── 7. Systemd tweaks ──────────────────────────────────────────
 log "Systemd configuration"
 sudo sed -Ei "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=3s/" \
   /etc/systemd/system.conf
@@ -67,24 +77,23 @@ sudo sed -Ei 's/CriticalPowerAction=HybridSleep/CriticalPowerAction=PowerOff/' \
   /etc/UPower/UPower.conf
 ok "Stop timeout 3 s, critical power action → PowerOff"
 
-# ── 7. Copy config/root files ──────────────────────────────────
-log "Copying root-level config files"
+# ── 8. Snapper + systemd-boot ──────────────────────────────────
+log "Snapper + systemd-boot"
+sudo systemctl daemon-reload
+sudo systemctl enable snapper-cleanup.timer snapper-timeline.timer
+sudo systemctl enable --now snapper-systemd-boot.path
+sudo /usr/local/bin/snapper-systemd-boot.sh || true
+sudo bootctl update --graceful 2>/dev/null || true
+ok "Snapper + systemd-boot"
 
-# The repo's `root/` tree mirrors the destination filesystem layout
-# (paths relative to /). Copy it over recursively.
-sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
-
-# Make /usr/local/bin scripts executable
-sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
-
-# ── 8. GTK dark mode ───────────────────────────────────────────
+# ── 9. GTK dark mode ───────────────────────────────────────────
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
 sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
-# ── 9. Samba ──────────────────────────────────────────────────
+# ── 10. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl enable --now smb nmb
 
@@ -140,7 +149,7 @@ fi
 sudo systemctl restart smb nmb
 ok "Samba running"
 
-# ── 10. Virtualization (KVM/libvirt) ───────────────────────────
+# ── 11. Virtualization (KVM/libvirt) ───────────────────────────
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
@@ -187,26 +196,27 @@ else
   ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
 fi
 
-# ── 11. Remaining services ─────────────────────────────────────
+# ── 12. Remaining services ─────────────────────────────────────
 log "Enabling services"
 for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service switch-to-tty1-shutdown.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
-  sudo waydroid init -s GAPPS
 done
+sudo waydroid init -s GAPPS 2>/dev/null || true
+ok "waydroid GAPPS"
 
-# ── 12. Global npm packages ────────────────────────────────────
+# ── 13. Global npm packages ────────────────────────────────────
 log "Global npm/pnpm packages"
 pnpm add -g neovim live-server typescript tsx free-coding-models
 ok "neovim, live-server, typescript, tsx, free-coding-models"
 
-# ── 13. Flatpak apps ───────────────────────────────────────────
+# ── 14. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
 flatpak install -y --noninteractive flathub \
   io.github._0xzer0x.qurancompanion \
   net.sapples.LiveCaptions
 ok "Flatpak apps installed"
 
-# ── 14. Root account symlinks ──────────────────────────────────
+# ── 15. Root account symlinks ──────────────────────────────────
 log "Root user symlinks"
 sudo bash -s <<'ROOT'
   set -euo pipefail
