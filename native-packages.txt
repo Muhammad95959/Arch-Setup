@@ -78,6 +78,7 @@ kvantum-qt5
 lazygit
 libreoffice-still
 libva-nvidia-driver
+booster
 linux
 linux-firmware
 linux-headers

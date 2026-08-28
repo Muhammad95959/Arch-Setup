@@ -1,0 +1,6 @@
+# Booster config for minimal boot, btrfs root on NVMe, TigerLake i915
+universal: false
+compression: zstd
+strip: true
+extra_files: btrfs,fsck.btrfs
+vconsole: false

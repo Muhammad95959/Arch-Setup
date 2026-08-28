@@ -51,11 +51,12 @@ sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
 
-# Rebuild initramfs with repo mkinitcpio.conf (no kms -> 16M vs 134M, loader 2.28s -> 0.78s)
-if [[ -f /etc/mkinitcpio.conf ]]; then
-  sudo mkinitcpio -P
-  sudo bootctl update --graceful 2>/dev/null || true
+# Rebuild initramfs with booster (11M, zstd, host-specific)
+if command -v booster &>/dev/null; then
+  log "Building booster image"
+  sudo booster build --force --kernel-version "$(ls /usr/lib/modules | grep -E '^[0-9]' | head -n1)" /boot/booster-linux.img 2>&1 | tail -n 5 || sudo booster build 2>&1 | tail -n 5
 fi
+sudo bootctl update --graceful 2>/dev/null || true
 
 # ── 5.5. Service patches for minimal boot  ─────────────────────
 log "Patching services for minimal boot"

@@ -4,7 +4,12 @@ ESP="/boot"
 ROOT_UUID="86248124-9996-4f48-8c3f-ab4404f6f1f2"
 ENTRIES_DIR="$ESP/loader/entries"
 KERNEL="/vmlinuz-linux"
-INITRD="/initramfs-linux.img"
+# Use booster if available, fallback to mkinitcpio
+if [[ -f "$ESP/booster-linux.img" ]]; then
+  INITRD="/booster-linux.img"
+else
+  INITRD="/initramfs-linux.img"
+fi
 CMDLINE="root=UUID=$ROOT_UUID rw rootflags=subvol="
 # remove stale entries
 for entry in "$ENTRIES_DIR"/snapper-*.conf; do
