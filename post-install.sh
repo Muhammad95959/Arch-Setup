@@ -73,8 +73,7 @@ sudo sed -i '/^WantedBy=multi-user.target$/d' /etc/systemd/system/nmb.service
 
 sudo cp /usr/lib/systemd/system/smb.service /etc/systemd/system/smb.service 2>/dev/null || true
 sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' /etc/systemd/system/smb.service
-sudo sed -i 's/^After=network.target network-online.target nmb/After=network.target nmb/' /etc/systemd/system/smb.service
-sudo sed -i 's/^After=network.target network-online.target/After=network.target/' /etc/systemd/system/smb.service
+sudo sed -i 's/^After=network.target network-online.target nmb.service winbind.service/After=network.target winbind.service/' /etc/systemd/system/smb.service
 sudo sed -i '/^WantedBy=multi-user.target$/d' /etc/systemd/system/smb.service
 
 sudo systemctl daemon-reload
