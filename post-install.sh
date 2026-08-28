@@ -63,10 +63,10 @@ log "Patching services for minimal boot"
 sudo cp /usr/lib/systemd/system/systemd-user-sessions.service /etc/systemd/system/systemd-user-sessions.service 2>/dev/null || true
 sudo sed -i 's/ network.target//' /etc/systemd/system/systemd-user-sessions.service
 
-# systemd-backlight: defer after sysinit
+# systemd-backlight: defer after sysinit, before chvt on shutdown (avoid flicker race)
 sudo cp /usr/lib/systemd/system/systemd-backlight@.service /etc/systemd/system/systemd-backlight@.service 2>/dev/null || true
-sudo sed -i 's/^Before=sysinit.target shutdown.target/Before=shutdown.target/' /etc/systemd/system/systemd-backlight@.service
-sudo grep -q "^After=sysinit.target" /etc/systemd/system/systemd-backlight@.service || sudo sed -i '/^Before=shutdown.target/a After=sysinit.target' /etc/systemd/system/systemd-backlight@.service
+sudo sed -i 's/^Before=sysinit.target shutdown.target/Before=switch-to-tty1-shutdown.service shutdown.target/' /etc/systemd/system/systemd-backlight@.service
+sudo grep -q "^After=sysinit.target" /etc/systemd/system/systemd-backlight@.service || sudo sed -i '/^Before=switch-to-tty1-shutdown.service shutdown.target/a After=sysinit.target' /etc/systemd/system/systemd-backlight@.service
 
 # cups, sshd, vnstat, auto-cpufreq: remove network dependency
 for svc in cups sshd vnstat auto-cpufreq; do
