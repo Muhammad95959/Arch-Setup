@@ -67,14 +67,7 @@ sudo sed -Ei 's/CriticalPowerAction=HybridSleep/CriticalPowerAction=PowerOff/' \
   /etc/UPower/UPower.conf
 ok "Stop timeout 3 s, critical power action → PowerOff"
 
-# ── 7. GRUB cmdline cleanup ────────────────────────────────────
-log "GRUB configuration"
-sudo sed -Ei 's/^GRUB_CMDLINE_LINUX_DEFAULT=".*"$/GRUB_CMDLINE_LINUX_DEFAULT=""/' \
-  /etc/default/grub
-sudo grub-mkconfig -o /boot/grub/grub.cfg
-ok "GRUB_CMDLINE_LINUX_DEFAULT set to \"quiet\""
-
-# ── 8. Copy config/root files ──────────────────────────────────
+# ── 7. Copy config/root files ──────────────────────────────────
 log "Copying root-level config files"
 
 # The repo's `root/` tree mirrors the destination filesystem layout
@@ -82,16 +75,16 @@ log "Copying root-level config files"
 sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 
 # Make /usr/local/bin scripts executable
-sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer}
+sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
 
-# ── 9. GTK dark mode ───────────────────────────────────────────
+# ── 8. GTK dark mode ───────────────────────────────────────────
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
 sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
-# ── 10. Samba ──────────────────────────────────────────────────
+# ── 9. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl enable --now smb nmb
 
@@ -147,7 +140,7 @@ fi
 sudo systemctl restart smb nmb
 ok "Samba running"
 
-# ── 11. Virtualization (KVM/libvirt) ───────────────────────────
+# ── 10. Virtualization (KVM/libvirt) ───────────────────────────
 log "Virtualization setup"
 paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
 
@@ -194,26 +187,26 @@ else
   ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
 fi
 
-# ── 12. Remaining services ─────────────────────────────────────
+# ── 11. Remaining services ─────────────────────────────────────
 log "Enabling services"
 for svc in auto-cpufreq cups kanata.service systemd-timesyncd vnstat.service bluetooth.service fprintd.service waydroid-container.service switch-to-tty1-shutdown.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
   sudo waydroid init -s GAPPS
 done
 
-# ── 13. Global npm packages ────────────────────────────────────
+# ── 12. Global npm packages ────────────────────────────────────
 log "Global npm/pnpm packages"
 pnpm add -g neovim live-server typescript tsx free-coding-models
 ok "neovim, live-server, typescript, tsx, free-coding-models"
 
-# ── 14. Flatpak apps ───────────────────────────────────────────
+# ── 13. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
 flatpak install -y --noninteractive flathub \
   io.github._0xzer0x.qurancompanion \
   net.sapples.LiveCaptions
 ok "Flatpak apps installed"
 
-# ── 15. Root account symlinks ──────────────────────────────────
+# ── 14. Root account symlinks ──────────────────────────────────
 log "Root user symlinks"
 sudo bash -s <<'ROOT'
   set -euo pipefail

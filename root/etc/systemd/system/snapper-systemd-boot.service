@@ -1,0 +1,6 @@
+[Unit]
+Description=Update systemd-boot entries for snapper
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/snapper-systemd-boot.sh

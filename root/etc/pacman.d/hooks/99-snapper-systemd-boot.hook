@@ -1,0 +1,13 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = linux
+Target = linux-lts
+Target = linux-zen
+
+[Action]
+Description = Update systemd-boot snapper entries
+When = PostTransaction
+Exec = /usr/local/bin/snapper-systemd-boot.sh
