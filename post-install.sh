@@ -60,10 +60,7 @@ fi
 sudo bootctl update --graceful 2>/dev/null || true
 
 # ── 5.5. Service patches for delayed services ──────────────────
-log "Patching delayed services (libvirtd/nmb/smb)"
-# libvirtd, nmb, smb: small patches for delayed start via timers
-sudo cp /usr/lib/systemd/system/libvirtd.service /etc/systemd/system/libvirtd.service 2>/dev/null || true
-sudo sed -i '/^After=network.target$/d; /^After=remote-fs.target$/d; /^WantedBy=multi-user.target$/d' /etc/systemd/system/libvirtd.service
+log "Patching delayed services (nmb/smb)"
 
 sudo cp /usr/lib/systemd/system/nmb.service /etc/systemd/system/nmb.service 2>/dev/null || true
 sudo sed -i 's/^Wants=network-online.target/Wants=network.target/' /etc/systemd/system/nmb.service
@@ -121,10 +118,20 @@ gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
 sudo flatpak override --filesystem="$HOME/.themes"
 ok "Done"
 
-# ── 10. Samba ──────────────────────────────────────────────────
+# ── 10. Virtualization (KVM/libvirt) ───────────────────────────
+log "Virtualization setup"
+paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
+
+if id -nG "$(whoami)" | grep -qw libvirt; then
+  skip "$(whoami) already in libvirt group"
+else
+  sudo usermod -aG libvirt "$(whoami)"
+  ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
+fi
+
+# ── 11. Samba ──────────────────────────────────────────────────
 log "Samba setup"
 sudo systemctl daemon-reload
-sudo systemctl disable --now nmb.service smb.service 2>/dev/null || true
 sudo systemctl enable --now nmb-delay.timer
 ok "Samba services delayed 5s after boot via timer"
 
@@ -151,27 +158,6 @@ fi
 
 sudo systemctl restart smb nmb
 ok "Samba running"
-
-# ── 11. Virtualization (KVM/libvirt) ───────────────────────────
-log "Virtualization setup"
-paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
-
-sudo systemctl daemon-reload
-sudo systemctl disable --now libvirtd.service 2>/dev/null || true
-sudo systemctl disable --now libvirtd.socket libvirtd-ro.socket libvirtd-admin.socket 2>/dev/null || true
-sudo systemctl enable --now virtlogd.service virtlogd.socket 2>/dev/null || true
-sudo systemctl enable --now libvirtd-delay.timer
-ok "libvirtd delayed 5s after boot via timer"
-
-sudo virsh net-autostart default
-sudo virsh net-start default 2>/dev/null || true
-
-if id -nG "$(whoami)" | grep -qw libvirt; then
-  skip "$(whoami) already in libvirt group"
-else
-  sudo usermod -aG libvirt "$(whoami)"
-  ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
-fi
 
 # ── 12. Remaining services ─────────────────────────────────────
 log "Enabling services"
