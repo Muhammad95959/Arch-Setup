@@ -108,18 +108,6 @@ sudo sed -i '/^\[Service\]$/i ExecStartPost=/usr/bin/systemctl start smb.service
   /etc/systemd/system/nmb.service
 sudo sed -i '/^WantedBy=multi-user.target$/d' \
   /etc/systemd/system/nmb.service /etc/systemd/system/smb.service
-sudo bash -c 'cat > /etc/systemd/system/nmb-delay.timer << "EOF"
-[Unit]
-Description=Delay nmb.service + smb.service until after boot
-
-[Timer]
-Unit=nmb.service
-OnBootSec=5s
-AccuracySec=1s
-
-[Install]
-WantedBy=timers.target
-EOF'
 sudo systemctl daemon-reload
 sudo systemctl disable --now nmb.service smb.service 2>/dev/null || true
 sudo systemctl enable --now nmb-delay.timer
@@ -158,27 +146,6 @@ sudo sed -i '/^After=network.target$/d; /^After=remote-fs.target$/d' \
   /etc/systemd/system/libvirtd.service
 sudo sed -i '/^WantedBy=multi-user.target$/d' \
   /etc/systemd/system/libvirtd.service
-sudo bash -c 'cat > /etc/systemd/system/libvirtd.service.d/10-secret.conf << "EOF"
-[Unit]
-Requires=virt-secret-init-encryption.service
-After=virt-secret-init-encryption.service
-
-[Service]
-Environment=SECRETS_ENCRYPTION_KEY=%d/secrets-encryption-key
-LoadCredentialEncrypted=secrets-encryption-key:/var/lib/libvirt/secrets/secrets-encryption-key
-EOF'
-sudo bash -c 'cat > /etc/systemd/system/libvirtd-delay.timer << "EOF"
-[Unit]
-Description=Delay libvirtd.service until after boot
-
-[Timer]
-Unit=libvirtd.service
-OnBootSec=5s
-AccuracySec=1s
-
-[Install]
-WantedBy=timers.target
-EOF'
 sudo systemctl daemon-reload
 sudo systemctl disable --now libvirtd.service 2>/dev/null || true
 sudo systemctl disable --now libvirtd.socket libvirtd-ro.socket libvirtd-admin.socket 2>/dev/null || true
@@ -220,14 +187,6 @@ ok "Flatpak apps installed"
 log "Root user symlinks"
 sudo bash -s <<'ROOT'
   set -euo pipefail
-
-  SYSCTL_FILE=/etc/sysctl.d/99-sysctl.conf
-  if [[ -f "$SYSCTL_FILE" ]] && grep -qx 'kernel.sysrq = 1' "$SYSCTL_FILE"; then
-    echo "    → kernel.sysrq already set, skipping"
-  else
-    echo "kernel.sysrq = 1" >> "$SYSCTL_FILE"
-    echo "    ✓ kernel.sysrq = 1 added"
-  fi
 
   USER_HOME=/home/muhammad
   rm -rf \

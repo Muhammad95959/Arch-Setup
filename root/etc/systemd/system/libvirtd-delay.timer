@@ -1,0 +1,10 @@
+[Unit]
+Description=Delay libvirtd.service until after boot
+
+[Timer]
+Unit=libvirtd.service
+OnBootSec=5s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
