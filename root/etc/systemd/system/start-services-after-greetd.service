@@ -1,0 +1,11 @@
+[Unit]
+Description=Start non-essential services after graphical target
+After=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl start avahi-daemon.service NetworkManager.service bluetooth.service upower.service sshd.service cups.service nmb.service smb.service waydroid-container.service
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target
