@@ -49,3 +49,4 @@ wlrobs-hg
 wshowkeys-mao-git
 xdg-desktop-portal-termfilechooser-hunkyburrito-git
 zathura-git
+zathura-pdf-poppler-git

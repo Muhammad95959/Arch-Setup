@@ -4,7 +4,7 @@ After=graphical.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/systemctl start NetworkManager.service avahi-daemon.service bluetooth.service upower.service sshd.service cups.service nmb.service smb.service libvirtd.service waydroid-container.service
+ExecStart=/usr/bin/systemctl start NetworkManager.service bluetooth.service avahi-daemon.service upower.service auto-cpufreq.service vnstat.service sshd.service nmb.service smb.service waydroid-container.service cups.socket libvirtd.socket
 RemainAfterExit=yes
 
 [Install]

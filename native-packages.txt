@@ -14,6 +14,7 @@ blanket
 bleachbit
 blueman
 bluez-obex
+booster
 bottom
 breeze
 brightnessctl
@@ -78,7 +79,6 @@ kvantum-qt5
 lazygit
 libreoffice-still
 libva-nvidia-driver
-booster
 linux
 linux-firmware
 linux-headers
@@ -129,6 +129,7 @@ python-pyclip
 python-pynvim
 python-scipy
 qalculate-gtk
+qbittorrent
 qemu-full
 qt5ct
 qt6ct
@@ -187,7 +188,6 @@ yazi
 ydotool
 yt-dlp
 yt-dlp-ejs
-zathura-pdf-poppler
 zip
 zoxide
 zsh

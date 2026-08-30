@@ -5,16 +5,19 @@
 set -euo pipefail
 
 # ── Helpers ────────────────────────────────────────────────────
-log()  { echo -e "\n\e[1;34m==> $*\e[0m"; }
-ok()   { echo    "    ✓ $*"; }
-skip() { echo    "    → $* (already done, skipping)"; }
-fail() { echo -e "\e[1;31m✗ $*\e[0m" >&2; exit 1; }
+log() { echo -e "\n\e[1;34m==> $*\e[0m"; }
+ok() { echo "    ✓ $*"; }
+skip() { echo "    → $* (already done, skipping)"; }
+fail() {
+  echo -e "\e[1;31m✗ $*\e[0m" >&2
+  exit 1
+}
 
 BACKUP_ROOT="$(cd "$(dirname "$0")" && pwd)/root"
 
 # ── 1. Pacman tweaks ───────────────────────────────────────────
 log "Pacman configuration"
-sudo sed -Ei '/Color/s/^#//'                              /etc/pacman.conf
+sudo sed -Ei '/Color/s/^#//' /etc/pacman.conf
 sudo sed -Ei 's/#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
 ok "Color + parallel downloads enabled"
 
@@ -36,10 +39,10 @@ fi
 
 # ── 4. Packages ────────────────────────────────────────────────
 log "Installing native packages"
-paru -S --needed --noconfirm - < native-packages.txt
+paru -S --needed --noconfirm - <native-packages.txt
 
 log "Installing AUR packages"
-paru -S --needed --noconfirm - < aur-packages.txt
+paru -S --needed --noconfirm - <aur-packages.txt
 
 # ── 5. Copy config/root files ──────────────────────────────────
 log "Copying root-level config files"
@@ -54,7 +57,10 @@ sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-bo
 # Rebuild initramfs with booster (11M, zstd, host-specific)
 if command -v booster &>/dev/null; then
   log "Building booster image"
-  kver=$(for d in /usr/lib/modules/[0-9]*; do basename "$d"; break; done)
+  kver=$(for d in /usr/lib/modules/[0-9]*; do
+    basename "$d"
+    break
+  done)
   sudo booster build --force --kernel-version "$kver" /boot/booster-linux.img 2>&1 | tail -n 5 || sudo booster build 2>&1 | tail -n 5
 fi
 sudo bootctl update --graceful 2>/dev/null || true
@@ -140,8 +146,12 @@ fi
 ok "Samba configured (start manually with 'systemctl start smb nmb')"
 
 # ── 12. Remaining services ─────────────────────────────────────
-log "Enabling services"
-for svc in auto-cpufreq kanata.service systemd-timesyncd vnstat.service fprintd.service switch-to-tty1-shutdown.service; do
+log "Handling services"
+sudo systemctl disable NetworkManager.service avahi-daemon.service \
+  bluetooth.service upower.service auto-cpufreq.service \
+  vnstat.service sshd.service cups.service nmb.service \
+  smb.service libvirtd.service waydroid-container.service
+for svc in kanata.service systemd-timesyncd switch-to-tty1-shutdown.service start-services.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
 done
 sudo waydroid init -s GAPPS 2>/dev/null || true
