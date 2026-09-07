@@ -158,8 +158,8 @@ sudo waydroid init -s GAPPS 2>/dev/null || true
 ok "waydroid GAPPS"
 
 # ── 13. Global npm packages ────────────────────────────────────
-log "Global npm/pnpm packages"
-pnpm add -g neovim live-server typescript tsx free-coding-models
+log "Global npm packages"
+sudo npm install -g neovim live-server typescript tsx free-coding-models
 ok "neovim, live-server, typescript, tsx, free-coding-models"
 
 # ── 14. Flatpak apps ───────────────────────────────────────────
