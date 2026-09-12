@@ -1,7 +1,6 @@
 7zip
 acpi
 alsa-utils
-android-tools
 aria2
 audacious
 audacity
@@ -83,6 +82,7 @@ linux-firmware
 linux-headers
 man-db
 man-pages
+mesa-utils
 mpv
 mpv-mpris
 neovim
@@ -138,9 +138,12 @@ rsync
 rubygems
 rust
 samba
+sane
+sane-airscan
 shotwell
 slurp
 snapper
+snapshot
 sof-firmware
 stow
 system-config-printer

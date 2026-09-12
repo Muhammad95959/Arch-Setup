@@ -3,11 +3,13 @@ antigravity-cli
 auto-cpufreq
 boomaga
 brave-origin-bin
-cheese
+brother-dcpt720dw
+brscan5
 dashbinsh
 downgrade
 dracula-cursors-git
 dragon-drop
+flutter-bin
 gnome-network-displays
 hyprminimizer-git
 jetbrains-toolbox

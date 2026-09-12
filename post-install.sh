@@ -175,20 +175,23 @@ sudo bash -s <<'ROOT'
   set -euo pipefail
 
   USER_HOME=/home/muhammad
+  mkdir -p /root/.config /root/.local/share
   rm -rf \
-    /root/.local/share/nvim /root/.config/nvim \
-    /root/.zshrc /root/.config/zsh \
-    /root/.themes /root/.icons /root/.fonts \
-    /root/.config/gtk-{2,3,4}.0
+    /root/.local/share/nvim /root/.local/share/fonts /root/.local/share/themes \
+    /root/.config/nvim /root/.config/zsh \
+    /root/.config/gtk-{2,3,4}.0 \
+    /root/.config/{kanata,yazi} \
+    /root/.zshenv /root/.zshrc \
+    /root/.fonts /root/.icons /root/.themes
 
   for d in gtk-2.0 gtk-3.0 gtk-4.0 kanata nvim yazi zsh; do
     ln -sfn "$USER_HOME/.config/$d" /root/.config/
   done
-  for d in .fonts .icons .themes; do
-    ln -sfn "$USER_HOME/$d" /root/
+  for d in fonts themes; do
+    ln -sfn "$USER_HOME/.local/share/$d" /root/.local/share/
   done
   ln -sfn "$USER_HOME/.local/share/nvim" /root/.local/share/
-  ln -sfn "$USER_HOME/.zshrc" /root/
+  ln -sfn "$USER_HOME/.zshenv" /root/
   echo "    ✓ Root symlinks created"
 ROOT
 
