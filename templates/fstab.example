@@ -1,0 +1,21 @@
+# fstab template for a fresh install — reference only, NEVER auto-installed.
+# It lives in templates/ (outside root/) so post-install.sh §5 cannot copy it.
+# Replace BOOT_UUID / ROOT_UUID / HOME_UUID with `blkid` values, then
+# `sudo cp templates/fstab.example /etc/fstab` manually during install.
+# See MANUAL-CHECKLIST.md §1 (partitioning).
+#
+# Live layout reference (btrfs ROOT + ext4 HOME + vfat ESP):
+# /dev/nvme0n1p1 LABEL=BOOT
+UUID=BOOT_UUID         	/boot     	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+# /dev/nvme0n1p2 (swap)
+UUID=SWAP_UUID	none      	swap      	defaults  	0 0
+# /dev/nvme0n1p3 LABEL=ROOT (btrfs subvolumes)
+UUID=ROOT_UUID	/         	btrfs     	rw,noatime,compress=zstd:1,discard=async,subvol=/@	0 0
+UUID=ROOT_UUID	/var/log  	btrfs     	rw,noatime,compress=zstd:1,discard=async,subvol=/@log	0 0
+UUID=ROOT_UUID	/var/cache/pacman/pkg	btrfs     	rw,noatime,compress=zstd:1,discard=async,subvol=/@pkg	0 0
+UUID=ROOT_UUID	/.snapshots	btrfs     	rw,noatime,compress=zstd:1,discard=async,subvol=/@/.snapshots	0 0
+# /dev/nvme0n1p4 LABEL=HOME (ext4)
+UUID=HOME_UUID	/home     	ext4      	rw,relatime	0 2
+# Windows / shared disks (adjust UUIDs, keep nofail so boot never hangs)
+/dev/disk/by-uuid/DISK_C_UUID /mnt/Disk_C auto nosuid,nodev,nofail,x-gvfs-show,noauto 0 0
+/dev/disk/by-uuid/DISK_D_UUID /mnt/Disk_D auto nosuid,nodev,nofail,x-gvfs-show 0 0

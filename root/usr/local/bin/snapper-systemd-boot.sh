@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
 ESP="/boot"
-ROOT_UUID="86248124-9996-4f48-8c3f-ab4404f6f1f2"
+# Auto-detect root UUID at runtime so a fresh install with a new disk works.
+# Fallback is the previous machine's UUID (kept for reference only).
+ROOT_UUID="$(findmnt -no UUID / 2>/dev/null || true)"
+if [[ -z "$ROOT_UUID" ]]; then
+  ROOT_UUID="86248124-9996-4f48-8c3f-ab4404f6f1f2"
+fi
 ENTRIES_DIR="$ESP/loader/entries"
 KERNEL="/vmlinuz-linux"
 # Use booster if available, fallback to mkinitcpio

@@ -54,6 +54,16 @@ sudo cp -r --preserve=mode,timestamps "$BACKUP_ROOT/." /
 # Make /usr/local/bin scripts executable
 sudo chmod +x /usr/local/bin/{bilal,confet,hyprland-minimizer,snapper-systemd-boot.sh}
 
+# Render machine-specific boot entry (fresh disks have a new root UUID)
+ROOT_UUID="$(findmnt -no UUID / 2>/dev/null || true)"
+if [[ -n "$ROOT_UUID" ]]; then
+  sudo sed -Ei -e "s/@ROOT_UUID@/$ROOT_UUID/" -e "s/root=UUID=[^ ]+/root=UUID=$ROOT_UUID/" \
+    /boot/loader/entries/arch.conf || true
+  ok "Boot entry → root UUID $ROOT_UUID"
+else
+  echo "    ! Could not detect root UUID, edit /boot/loader/entries/arch.conf manually"
+fi
+
 # Rebuild initramfs with booster (11M, zstd, host-specific)
 if command -v booster &>/dev/null; then
   log "Building booster image"
@@ -87,9 +97,22 @@ fi
 log "Systemd configuration"
 sudo sed -Ei "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=3s/" \
   /etc/systemd/system.conf
-sudo sed -Ei 's/CriticalPowerAction=HybridSleep/CriticalPowerAction=PowerOff/' \
-  /etc/UPower/UPower.conf
+if grep -Eq "^CriticalPowerAction=" /etc/UPower/UPower.conf; then
+  sudo sed -Ei 's/^CriticalPowerAction=.*/CriticalPowerAction=PowerOff/' \
+    /etc/UPower/UPower.conf
+else
+  echo "CriticalPowerAction=PowerOff" | sudo tee -a /etc/UPower/UPower.conf >/dev/null
+fi
 ok "Stop timeout 3 s, critical power action → PowerOff"
+
+# Locale (en_US.UTF-8 only; /etc/locale.gen is owned by glibc so patch in place)
+if grep -Eq "^en_US.UTF-8 UTF-8" /etc/locale.gen; then
+  skip "locale en_US.UTF-8 already enabled"
+else
+  sudo sed -Ei 's/^#?(en_US.UTF-8 UTF-8)/\1/' /etc/locale.gen
+  sudo locale-gen
+  ok "Locale → en_US.UTF-8"
+fi
 
 # ── 8. Snapper + systemd-boot ──────────────────────────────────
 log "Snapper + systemd-boot"
@@ -104,18 +127,28 @@ ok "Snapper + systemd-boot"
 log "GTK dark mode"
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 gsettings set org.gnome.desktop.interface gtk-theme Tokyonight-Dark
-sudo flatpak override --filesystem="$HOME/.themes"
+sudo flatpak override --filesystem="$HOME/.local/share/themes"
 ok "Done"
 
 # ── 10. Virtualization (KVM/libvirt) ───────────────────────────
 log "Virtualization setup"
-paru -S --needed --noconfirm qemu-full virt-manager virt-viewer dnsmasq
+# qemu-full, virt-manager, virt-viewer, dnsmasq already in native-packages.txt (§4)
 
 if id -nG "$(whoami)" | grep -qw libvirt; then
   skip "$(whoami) already in libvirt group"
 else
   sudo usermod -aG libvirt "$(whoami)"
   ok "Added $(whoami) to libvirt group (re-login for it to take effect)"
+fi
+
+# flutter-bin (AUR §4) creates the flutter group; just ensure membership
+if getent group flutter &>/dev/null; then
+  if id -nG "$(whoami)" | grep -qw flutter; then
+    skip "$(whoami) already in flutter group"
+  else
+    sudo usermod -aG flutter "$(whoami)"
+    ok "Added $(whoami) to flutter group"
+  fi
 fi
 
 # ── 11. Samba ──────────────────────────────────────────────────
@@ -169,8 +202,35 @@ flatpak install -y --noninteractive flathub \
   net.sapples.LiveCaptions
 ok "Flatpak apps installed"
 
-# ── 15. Root account symlinks ──────────────────────────────────
+# ── 15. DotFiles (home config, no secrets) ─────────────────────
+log "DotFiles"
+# Secrets are NEVER cloned or stowed: ~/.ssh, ~/.gnupg, ~/.password-store,
+# browser profiles, and wifi connections are manual (see MANUAL-CHECKLIST.md).
+if [[ -d "$HOME/DotFiles/.git" ]]; then
+  skip "DotFiles already cloned"
+else
+  git clone https://github.com/Muhammad95959/DotFiles.git "$HOME/DotFiles"
+  ok "DotFiles cloned"
+fi
+if command -v stow &>/dev/null; then
+  # Pre-create package dirs so stow links the files inside them,
+  # never the dirs themselves (fresh $HOME has no ~/.config at all).
+  mkdir -p "$HOME/.config" "$HOME/.local/share"
+  (cd "$HOME/DotFiles" &&
+    for src in .config/*/ .local/share/*/; do
+      [[ -d "$src" ]] || continue
+      mkdir -p "$HOME/$src"
+    done &&
+    stow --no-folding --restow --target="$HOME" .) \
+    && ok "DotFiles stowed → \$HOME" \
+    || echo "    ! stow reported conflicts — resolve manually, then re-run"
+else
+  fail "stow not found (should come from native-packages.txt)"
+fi
+
+# ── 16. Root account symlinks ──────────────────────────────────
 log "Root user symlinks"
+# Requires §15: symlinks point at /home/muhammad/.config + .local/share + .zshenv
 sudo bash -s <<'ROOT'
   set -euo pipefail
 
