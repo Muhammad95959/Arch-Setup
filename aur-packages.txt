@@ -1,4 +1,4 @@
-albert
+android-studio
 antigravity-cli
 auto-cpufreq
 boomaga
@@ -12,7 +12,6 @@ dragon-drop
 flutter-bin
 gnome-network-displays
 hyprminimizer-git
-jetbrains-toolbox
 jqp-bin
 kanata-bin
 kilo-bin
@@ -41,6 +40,7 @@ webcord-bin
 wl-kbptr
 wlrctl
 wlrobs-hg
+workmux-bin
 xdg-desktop-portal-termfilechooser-hunkyburrito-git
 zathura-git
 zathura-pdf-poppler-git

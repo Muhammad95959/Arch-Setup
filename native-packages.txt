@@ -133,7 +133,6 @@ quickshell
 reflector
 resvg
 ripgrep
-rofi
 rsync
 rubygems
 rust
@@ -155,6 +154,7 @@ thunar
 thunar-archive-plugin
 tmux
 toilet
+tokei
 tree
 ttf-dejavu-nerd
 ttf-jetbrains-mono-nerd
