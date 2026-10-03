@@ -9,7 +9,6 @@ dashbinsh
 downgrade
 dracula-cursors-git
 dragon-drop
-flutter-bin
 gnome-network-displays
 hyprminimizer-git
 jqp-bin
@@ -29,7 +28,10 @@ opencode-bin
 paru
 posting-git
 pup-bin
+python-ctranslate2-bin
+python-sentencepiece-bin
 python312
+sentencepiece-bin
 sesh-bin
 telegram-desktop-bin
 ttf-vista-fonts

@@ -123,6 +123,7 @@ pulsemixer
 pyenv
 python-pipx
 python-pyclip
+python-pymupdf
 python-pynvim
 qalculate-gtk
 qbittorrent
@@ -149,6 +150,7 @@ system-config-printer
 tealdeer
 tela-circle-icon-theme-nord
 tesseract
+tesseract-data-ara
 testdisk
 thunar
 thunar-archive-plugin

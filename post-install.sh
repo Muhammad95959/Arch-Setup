@@ -192,8 +192,8 @@ ok "waydroid GAPPS"
 
 # ── 13. Global npm packages ────────────────────────────────────
 log "Global npm packages"
-sudo npm install -g neovim live-server typescript tsx free-coding-models
-ok "neovim, live-server, typescript, tsx, free-coding-models"
+sudo npm install -g neovim live-server typescript tsx free-coding-models adb-qr
+ok "neovim, live-server, typescript, tsx, free-coding-models, adb-qr"
 
 # ── 14. Flatpak apps ───────────────────────────────────────────
 log "Flatpak apps"
