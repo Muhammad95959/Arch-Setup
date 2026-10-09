@@ -17,6 +17,8 @@ bottom
 breeze
 brightnessctl
 cliphist
+cups
+cups-browsed
 dart-sass
 dash
 dbus-glib
@@ -137,12 +139,15 @@ rsync
 rubygems
 rust
 samba
+sane
+sane-airscan
 shotwell
 slurp
 snapper
 snapshot
 sof-firmware
 stow
+system-config-printer
 tealdeer
 tela-circle-icon-theme-nord
 tesseract
