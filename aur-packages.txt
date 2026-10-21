@@ -2,6 +2,7 @@ android-studio
 antigravity-cli
 auto-cpufreq
 brave-origin-bin
+collabora-office-bin
 dashbinsh
 downgrade
 dracula-cursors-git
@@ -10,7 +11,6 @@ gnome-network-displays
 hyprminimizer-git
 jqp-bin
 kanata-bin
-kilo-bin
 litecli
 localsend
 mongodb-bin
@@ -20,9 +20,8 @@ obs-source-clone
 obs-stroke-glow-shadow
 octave-communications
 octave-symbolic
-openai-codex-bin
-opencode-bin
 paru
+photocraft-bin
 posting-git
 pup-bin
 python-ctranslate2-bin
@@ -39,7 +38,6 @@ webcord-bin
 wl-kbptr
 wlrctl
 wlrobs-hg
-workmux-bin
 xdg-desktop-portal-termfilechooser-hunkyburrito-git
 zathura-git
 zathura-pdf-poppler-git

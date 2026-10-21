@@ -46,7 +46,6 @@ font-manager
 fontforge
 fprintd
 fzf
-gimp
 git
 git-delta
 git-filter-repo
@@ -76,7 +75,6 @@ kitty
 kvantum
 kvantum-qt5
 lazygit
-libreoffice-still
 libva-nvidia-driver
 linux
 linux-firmware
@@ -101,7 +99,6 @@ nvtop
 nwg-look
 obs-studio
 octave
-okular
 opencl-nvidia
 openssh
 ouch
@@ -182,6 +179,7 @@ wtype
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xorg-xhost
+xournalpp
 yazi
 ydotool
 yt-dlp
