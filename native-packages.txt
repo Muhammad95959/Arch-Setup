@@ -49,6 +49,7 @@ fzf
 git
 git-delta
 git-filter-repo
+github-cli
 gnome-disk-utility
 go
 gparted
@@ -138,6 +139,7 @@ rust
 samba
 sane
 sane-airscan
+scrcpy
 shotwell
 slurp
 snapper
@@ -184,6 +186,8 @@ yazi
 ydotool
 yt-dlp
 yt-dlp-ejs
+zathura
+zathura-pdf-poppler
 zip
 zoxide
 zsh

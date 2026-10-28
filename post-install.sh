@@ -187,15 +187,23 @@ sudo systemctl disable NetworkManager.service avahi-daemon.service \
 for svc in kanata.service systemd-timesyncd switch-to-tty1-shutdown.service start-services.service; do
   sudo systemctl enable --now "$svc" && ok "$svc"
 done
-sudo waydroid init -s GAPPS 2>/dev/null || true
+
+LOCAL_WAYDROID_IMAGES_DIR="/mnt/Disk_D/Muhammad/Waydroid-Images"
+if [[ -f "$LOCAL_WAYDROID_IMAGES_DIR/system.img" && -f "$LOCAL_WAYDROID_IMAGES_DIR/vendor.img" ]]; then
+  log "Staging local Waydroid images"
+  sudo mkdir -p /etc/waydroid-extra/images
+  sudo cp -f "$LOCAL_WAYDROID_IMAGES_DIR"/*.img /etc/waydroid-extra/images/
+  ok "Local Waydroid images staged"
+fi
+
+sudo waydroid init -f -s GAPPS 2>/dev/null || true
 ok "waydroid GAPPS"
 
 # ── 13. Global npm packages ────────────────────────────────────
 log "Global npm packages"
 mkdir -p "$HOME/.local/share/npm"
 npm config set prefix "$HOME/.local/share/npm"
-npm install -g @earendil-works/pi-coding-agent @openai/codex @opencode/cli adb-qr free-coding-models live-server neovim tsx typescript ui-ux-pro-max-cli
-npm install -g --allow-scripts=@opencode/cli @opencode/cli@latest
+grep -vE '^\s*(#|$)' npm-packages.txt | xargs -r npm install -g --allow-scripts=@opencode/cli
 ok "Global npm packages installed"
 
 # ── 14. Flatpak apps ───────────────────────────────────────────

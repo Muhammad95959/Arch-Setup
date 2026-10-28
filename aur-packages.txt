@@ -20,6 +20,7 @@ obs-source-clone
 obs-stroke-glow-shadow
 octave-communications
 octave-symbolic
+oh-my-pi-bin
 paru
 photocraft-bin
 posting-git
@@ -33,11 +34,8 @@ telegram-desktop-bin
 ttf-vista-fonts
 unimatrix-git
 ventoy-bin
-waydroid-image-gapps
 webcord-bin
 wl-kbptr
 wlrctl
 wlrobs-hg
 xdg-desktop-portal-termfilechooser-hunkyburrito-git
-zathura-git
-zathura-pdf-poppler-git

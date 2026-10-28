@@ -1,0 +1,10 @@
+@earendil-works/pi-coding-agent
+@openai/codex
+@opencode/cli
+adb-qr
+free-coding-models
+live-server
+neovim
+tsx
+typescript
+ui-ux-pro-max-cli
