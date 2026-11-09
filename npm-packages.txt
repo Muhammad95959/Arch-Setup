@@ -3,6 +3,7 @@
 @opencode/cli
 adb-qr
 free-coding-models
+freebuff
 live-server
 neovim
 tsx

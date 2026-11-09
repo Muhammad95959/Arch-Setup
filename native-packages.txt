@@ -173,6 +173,7 @@ virt-manager
 virt-viewer
 vnstat
 waydroid
+websocat
 wget
 wl-clip-persist
 wl-clipboard
